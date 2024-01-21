@@ -131,3 +131,24 @@ class CBAM_FineTunedEfficientNet(nn.Module):
         x = self.efficientnet._dropout(x)
         x = self.efficientnet._fc(x)
         return x
+
+class FineTunedResNet(nn.Module):
+    def __init__(self, num_classes, dropout_rate=0.5):
+        super(FineTunedResNet, self).__init__()
+        # 加载预训练的ResNet模型
+        self.resnet = models.resnet18(pretrained=True)
+
+        # 冻结模型的前面层
+        for name, child in list(self.resnet.named_children())[:-4]:  # 冻结除最后4个模块之外的所有层
+            for param in child.parameters():
+                param.requires_grad = False
+
+        # 替换最后的全连接层，加入Dropout
+        num_features = self.resnet.fc.in_features
+        self.resnet.fc = nn.Sequential(
+            nn.Dropout(dropout_rate),
+            nn.Linear(num_features, num_classes)
+        )
+
+    def forward(self, x):
+        return self.resnet(x)

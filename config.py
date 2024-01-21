@@ -31,7 +31,7 @@ class Config:
     # tblog_dir = "logs"
     model = "ResNet18"
 
-    epoch = 10
+    epoch = 100
     # epoch_step = 1  # print loss every {epoch_step} epochs
     batch_size= 64
     lr = 0.00013
