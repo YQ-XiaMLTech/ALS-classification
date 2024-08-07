@@ -1,5 +1,7 @@
 # Miniset-DenseSENet: An Effective Model Framework for ALS Diagnosis
 
+**For a detailed introduction, please refer to [Poster.pdf](./Poster.pdf).**
+
 In this study, we exploit the combination of transfer learning and attention mechanism to develop an effective model framework named Miniset-DenseSENet. The model leverages the powerful feature extraction capabilities of pre-trained DenseNet121 and combines SE modules to enhance feature representation. By focusing on the most relevant features in the dataset, our approach aims to improve the diagnosis and understanding of ALS. Our main contributions are as follows:
 
 1. **Postmortem Brain Image Analysis**:
