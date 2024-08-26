@@ -21,7 +21,7 @@ from process_dataset import utils_image
 from process_dataset.split_data import ImageClassifyDataset
 from torchvision import transforms
 from model.CNNModel import Multi_CNNModel,Bin_CNNModel
-from model.AttentionModel import FineTunedResNet
+from model.DenseNet import FineTunedResNet
 from model import utils
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, f1_score, matthews_corrcoef, cohen_kappa_score, accuracy_score
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # def process():
     #     generate_dataset(config.process_src_path, config.process_dst_path, config)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epoch", type=int, default=config.epoch, help="epoch")
+    # parser.add_argument("--epoch", type=int, default=config.epoch, help="epoch")
     parser.add_argument("--batch_size", type=int, default=config.batch_size, help="batch_size")
     parser.add_argument('--lr', type=float, default=config.lr, help='learning rate, default=0.01')
     parser.add_argument("--classification", type=str, default=config.classification, help="classification")
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     trial_params = []
     val_acc_history = []
     # 随机搜索超参数
-    num_random_trials = 30  # 随机搜索的次数
+    num_random_trials = 1  # 随机搜索的次数
     # 在随机搜索循环中
     best_trial_acc = 0
 
@@ -176,17 +176,18 @@ if __name__ == "__main__":
 
         if args.model == "CNN":
             # 随机选择超参数
-            lr = 10 ** np.random.uniform(-5, -3)
-            batch_size = int(np.random.choice([16, 32, 64]))
+            lr = 10 ** np.random.uniform(-7, -3)
+            batch_size = int(np.random.choice([32, 64, 128, 256]))
 
             dropout_rate1 = np.random.uniform(0.0, 0.5)
             dropout_rate2 = np.random.uniform(0.0, 0.5)
             dropout_rate3 = np.random.uniform(0.0, 0.5)
             dropout_rate4 = np.random.uniform(0.0, 0.5)
             dropout_rate5 = np.random.uniform(0.0, 0.5)
+            scheduler_patience_options = int(np.random.choice([2, 5, 10]))
 
             print(
-                f"Trial {trial}: lr={lr}, batch_size={batch_size}, dropout1={dropout_rate1},dropout2={dropout_rate2},dropout3={dropout_rate3},dropout4={dropout_rate4},dropout5={dropout_rate5}")
+                f"Trial {trial}: lr={lr}, batch_size={batch_size}, dropout1={dropout_rate1},dropout2={dropout_rate2},dropout3={dropout_rate3},dropout4={dropout_rate4},dropout5={dropout_rate5},scheduler_patience_options={scheduler_patience_options}")
             trial_params.append({
                 'lr': lr,
                 'batch_size': batch_size,
@@ -194,25 +195,29 @@ if __name__ == "__main__":
                 'dropout_rate2': dropout_rate2,
                 'dropout_rate3': dropout_rate3,
                 'dropout_rate4': dropout_rate4,
-                'dropout_rate5': dropout_rate5
+                'dropout_rate5': dropout_rate5,
+                'scheduler_patience_options': scheduler_patience_options,
             })
-        elif args.model == "RetNet":
+        elif args.model == "ResNet":
             lr = 10 ** np.random.uniform(-5, -1)
             dropout_rate = np.random.uniform(0.0, 0.5)
             weight_decay_options = np.random.choice(np.logspace(-5, -2, base=10))
             batch_size = int(np.random.choice([16, 32, 64, 128]))
             scheduler_patience_options = int(np.random.choice([2, 5, 10]))
             scheduler_factor_options = int(np.random.choice([0.1, 0.25, 0.5]))
+            unfreeze_layers = int(np.random.choice(range(1, 9)))
 
             print(
-                f"Trial {trial}: lr={lr}, batch_size={batch_size}, dropout={dropout_rate},weight_decay_options={weight_decay_options},scheduler_patience_options={scheduler_patience_options},scheduler_factor_options={scheduler_factor_options}")
+                f"Trial {trial}: lr={lr}, batch_size={batch_size}, dropout={dropout_rate},weight_decay_options={weight_decay_options},"
+                f"scheduler_patience_options={scheduler_patience_options},scheduler_factor_options={scheduler_factor_options}，unfreeze_layers={unfreeze_layers}")
             trial_params.append({
                 'lr': lr,
                 'batch_size': batch_size,
                 'dropout_rate': dropout_rate,
                 'weight_decay_options': weight_decay_options,
                 'scheduler_patience_options': scheduler_patience_options,
-                'scheduler_factor_options': scheduler_factor_options
+                'scheduler_factor_options': scheduler_factor_options,
+                'unfreeze_layers':unfreeze_layers
             })
 
         print("[Step 2] Preparing dataset...")
@@ -235,7 +240,7 @@ if __name__ == "__main__":
         # 初始化模型、优化器、损失函数
         if args.model == "ResNet":
             # Create an instance of the FineTunedResNet model
-            model = FineTunedResNet(num_classes=3, dropout_rate=dropout_rate).to(config.device)
+            model = FineTunedResNet(num_classes=3, dropout_rate=dropout_rate, unfreeze_layers=unfreeze_layers).to(config.device)
             criterion = nn.CrossEntropyLoss()
             optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters()),
                                          lr=lr,
@@ -248,11 +253,11 @@ if __name__ == "__main__":
                 args.device)
             optimizer = optim.Adam(model.parameters(), lr=lr)
             criterion = nn.CrossEntropyLoss()
-            scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.25, patience=5, min_lr=0.00001)
+            scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.25, patience=scheduler_patience_options, min_lr=0.00001)
 
         print(model)
 
-        k_folds = 5
+        k_folds = 4
         kfold = KFold(n_splits=k_folds, shuffle=True)
         fold_performance = []
 
@@ -299,6 +304,8 @@ if __name__ == "__main__":
             # print('test_imagedir',test_imagedir, '\ntest_labels',test_labels)
             # print('train:', len(train_imagedir), '\ntest:', len(test_imagedir))
             print('train:', len(train_image_paths), '\nval:', len(val_image_paths))
+            print('augmented_image_paths', augmented_image_paths, '\naugmented_labels', augmented_labels)
+            print('augmented_image_len', len(augmented_image_paths), '\naugmented_labels_len', len(augmented_labels))
             # print('train:',len(train_imagedir),'\nval:',len(val_imagedir),'\ntest:',len(test_imagedir))
             print(f"Number of 0s: {train_labels.count(0)}")
             print(f"Number of 1s: {train_labels.count(1)}")

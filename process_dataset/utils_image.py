@@ -22,6 +22,8 @@ def augment_images(image_paths, labels, output_folder):
     perspective_images = perspective_transform_images(image_paths, output_folder)
 
     # 合并所有增强图像路径到总列表，并复制相应的标签
+    augmented_image_paths.extend(image_paths)
+    augmented_labels.extend(labels)
     augmented_image_paths.extend(flipped_images)
     augmented_labels.extend(labels)
     augmented_image_paths.extend(rotated_images)
@@ -47,7 +49,22 @@ def augment_images(image_paths, labels, output_folder):
 
     return augmented_image_paths, augmented_labels
 
+def original_images(train_imagedir, output_folder):
+    original_folder = os.path.join(output_folder, "original")
+    if not os.path.exists(original_folder):
+        os.makedirs(original_folder)
 
+    processed_train_imagedir = []
+
+    for img_path in train_imagedir:
+        image = cv2.imread(img_path)
+
+        output_path = os.path.join(original_folder, os.path.basename(img_path))
+        cv2.imwrite(output_path, image)
+
+        processed_train_imagedir.append(output_path)
+
+    return processed_train_imagedir
 def flip_images(train_imagedir, output_folder, flip_code=1):
     flip_folder = os.path.join(output_folder, "flipped")
     if not os.path.exists(flip_folder):

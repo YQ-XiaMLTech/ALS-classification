@@ -29,11 +29,10 @@ class Config:
     # loss_fn_id = 1
     # threshold = -17.2
     # tblog_dir = "logs"
-    model = "ResNet18"
+    model = "CNN"
 
-    epoch = 100
-    # epoch_step = 1  # print loss every {epoch_step} epochs
+    epoch = 150
     batch_size= 64
-    lr = 0.00013
-    seed = 1
+    lr = 0.0001
+    seed = 9
 config = Config
