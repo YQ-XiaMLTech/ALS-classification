@@ -22,4 +22,4 @@ By leveraging deep learning techniques, this study aims to improve the diagnosti
 For any questions or collaboration inquiries, feel free to contact:  
 **Yuqing Xia** – [XIAY0039@e.ntu.edu.sg]  
 
-**Please refer to poster.pdf for more details.**
+**Please refer to Poster.pdf for more details.**
