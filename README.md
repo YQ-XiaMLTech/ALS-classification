@@ -18,7 +18,7 @@ By leveraging deep learning techniques, this study aims to improve the diagnosti
 - **Current Status:** The study has been **submitted to Scientific Reports**.  
 
 ## **Citation**  
-If you use the Miniset-DenseSENet code and/or its dataset, please cite our papers titled "Improving ALS detection and cognitive impairment stratification with attention-enhanced deep learning models" [https://doi.org/10.48550/arXiv.2412.04442](https://www.nature.com/articles/s41598-025-90881-9)
+If you use the Miniset-DenseSENet code and/or its dataset, please cite our papers titled "Improving ALS detection and cognitive impairment stratification with attention-enhanced deep learning models" https://www.nature.com/articles/s41598-025-90881-9
 
 ## **Contact**  
 For any questions or collaboration inquiries, feel free to contact:  
